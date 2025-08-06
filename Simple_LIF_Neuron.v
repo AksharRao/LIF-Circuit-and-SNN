@@ -1,11 +1,8 @@
 // -----------------------------------------------------------------------------
 // Module: LIF_Neuron
 // Description:
-//   Leaky Integrate-and-Fire (LIF) neuron model implemented in Verilog,
-//   with an added refractory period to mimic biological neuron behavior.
-//   The neuron integrates input current, leaks charge over time,
-//   spikes when threshold is crossed, and enters a temporary inactive
-//   (refractory) state after spiking.
+//    Leaky Integrate-and-Fire (LIF) neuron model implemented in Verilog,
+//    with an added refractory period to mimic biological neuron behavior.
 // -----------------------------------------------------------------------------
 
 module LIF_Neuron (
@@ -17,36 +14,39 @@ module LIF_Neuron (
     reg [7:0] membrane_potential;
 
     // Tunable parameters
-    parameter THRESHOLD = 8'd128;       // Firing threshold, reduce to see spikes early on
-    parameter LEAK = 8'd1;              // Leakage per cycle
-    parameter REFRACTORY_CYCLES = 4;    // Silent period after spike
-    // Refractory Period: A span of time after a neutron spikes during which it cannot spike again
+    parameter THRESHOLD = 8'd128;      // Firing threshold
+    parameter LEAK = 8'd1;             // Leakage per cycle
+    parameter REFRACTORY_CYCLES = 3;   // Silent period after spike
 
-    // Countdown timer for refractory period
-    reg [$clog2(REFRACTORY_CYCLES+1)-1:0] refractory_counter; 
-    // refractory_counter adjusts its bit value depending on the REFRACTORY_CYCLES
-    
-    wire in_refractory = (refractory_counter != 0); // in_refractory is true if red_counter != 0, and false if it == 0
-    
+    // Using 3 bits for the refractory counter to support up to 7 cycles,
+    // ensuring compatibility with Xilinx ISE and avoiding truncation.
+    reg [2:0] refractory_counter;
+
+    wire in_refractory = (refractory_counter != 0);
+
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            membrane_potential <= 0;
-            spike <= 0;
-            refractory_counter <= 0;
+            membrane_potential <= 8'd0;
+            spike <= 1'b0;
+            refractory_counter <= 3'd0;
         end else begin
             if (in_refractory) begin
-                spike <= 0;
+                spike <= 1'b0;
                 refractory_counter <= refractory_counter - 1;
             end else if (membrane_potential >= THRESHOLD) begin
-                spike <= 1;
-                membrane_potential <= 0;
+                spike <= 1'b1;
+                membrane_potential <= 8'd0;
                 refractory_counter <= REFRACTORY_CYCLES;
             end else begin
-                spike <= 0;
-                membrane_potential <= (membrane_potential > LEAK) ?
-                    (membrane_potential - LEAK + input_current) :
-                    input_current;
+                spike <= 1'b0;
+                if (membrane_potential > LEAK)
+                    membrane_potential <= membrane_potential - LEAK + input_current;
+                else
+                    membrane_potential <= input_current;
             end
         end
     end
 endmodule
+
+
+

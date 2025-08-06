@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+M// -----------------------------------------------------------------------------
 // Module: LIF_Neuron
 // Description:
 //   Leaky Integrate-and-Fire (LIF) neuron model implemented in Verilog,
