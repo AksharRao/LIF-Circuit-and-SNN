@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+// Testbench for simple LIF neuron module
+
 module tb_LIF_Neuron;
 
     // Inputs
